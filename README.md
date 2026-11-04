@@ -50,12 +50,12 @@ See the [full Windows guide](docs/USAGE.md) for manual setup, command-line optio
 
 ## Example output
 
-For a recording named `interview.mp4`:
+For an input file named `sample_audio.wav`, the tool saves a transcript and subtitles in the same folder:
 
 ```text
-interview.mp4                 Original recording, unchanged
-interview_transcript.txt      Recognized speech
-interview_subtitles.srt       Numbered, timed subtitle cues
+sample_audio.wav
+sample_audio_transcript.txt
+sample_audio_subtitles.srt
 ```
 
 An illustrative SRT cue looks like this; it is a format example, not a measured recognition result:
@@ -63,7 +63,7 @@ An illustrative SRT cue looks like this; it is a format example, not a measured 
 ```srt
 1
 00:00:00,000 --> 00:00:02,500
-Welcome to the interview.
+This is a short audio sample.
 ```
 
 Both files use UTF-8; bilingual output also includes a byte order mark for Windows compatibility. Re-running the same input overwrites its generated TXT and SRT files. Copy earlier outputs elsewhere if you want to retain them.
