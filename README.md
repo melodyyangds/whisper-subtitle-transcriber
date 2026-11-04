@@ -1,131 +1,107 @@
 # Whisper Subtitle Transcriber
 
-Two Windows tools for turning local audio and video into readable transcripts and timed subtitles. Both run Whisper locally on the CPU using [faster-whisper](https://github.com/SYSTRAN/faster-whisper). No GPU, API key, subscription, or paid transcription service is required.
+Local audio and video transcription for Windows, with an English edition and a Mandarin–English edition. Turn recordings into plain-text transcripts and timed SRT subtitles using CPU inference, without a GPU or paid transcription API.
 
-Choose the English tool for English recordings, or the bilingual tool for Mandarin conversations that include English words and passages.
+[Windows setup and usage](docs/USAGE.md) · [繁體中文](README.zh-TW.md) · [Troubleshooting](TROUBLESHOOTING.md) · [Technical overview](docs/ARCHITECTURE.md) · [Validation results](VALIDATION.md)
 
-| | English | Bilingual |
+## What it does
+
+- Transcribes a local audio or video file into UTF-8 TXT and SRT files.
+- Offers drag-and-drop Windows BAT launchers and Python command-line access.
+- Runs Whisper locally through [faster-whisper](https://github.com/SYSTRAN/faster-whisper), using CPU int8 computation.
+- Supports English-only recordings and Chinese-dominant conversations that include English.
+- Converts recognized Chinese text to Traditional Chinese in the bilingual edition.
+- Writes results incrementally, preserving completed segments if a long job is interrupted.
+
+Suitable inputs include interviews, lectures, meeting recordings, and other speech recordings you have permission to process. Speech recognition is imperfect; review the results before sharing or publishing them.
+
+## Choose an edition
+
+| | English | Mandarin–English |
 | --- | --- | --- |
-| Folder | `English_Video_Transcriber_Windows` | `Bilingual_Subtitles_Windows_v3` |
+| Project folder | `English_Video_Transcriber_Windows` | `Bilingual_Subtitles_Windows_v3` |
+| Best suited to | English recordings | Chinese-dominant recordings with English words or passages |
 | Default model | `small.en` | Multilingual `small` |
-| Language | English | Mandarin and English; Chinese-dominant by default |
-| Chinese output | Not applicable | Traditional Chinese, Taiwan variant |
-| Launcher | `Transcribe_Video.bat` | `Transcribe_Audio_Video.bat` |
-| Higher accuracy option | Set a model through the Python CLI | `Transcribe_Higher_Accuracy.bat` uses `medium` |
+| Standard launcher | `Transcribe_Video.bat` | `Transcribe_Audio_Video.bat` |
+| File selection | Drag a file onto the BAT | Drag a file onto the BAT, or double-click to choose one |
+| Larger model option | Select a model through Python | `Transcribe_Higher_Accuracy.bat` uses `medium` |
 
-The bilingual tool transcribes the spoken languages and converts Chinese characters to Traditional Chinese. It does not create parallel translations or translate all speech into one language.
+The bilingual edition preserves spoken English and converts recognized Chinese characters to Traditional Chinese. It produces one transcript and one subtitle track, rather than parallel translations.
 
-## Requirements
+## Get started on Windows
 
-- Windows with 64-bit Python 3.10–3.12; Python 3.12 is the tested version.
-- Windows PowerShell 5.1, included with Windows.
-- Internet access for the initial package installation and each model's first download.
-- Enough memory and disk space for the selected model. Larger models use more resources and take longer on a CPU.
+**You need:** 64-bit Python 3.10–3.12, Windows PowerShell 5.1, and internet access for initial package and model downloads. Python 3.12 is the tested version. A separate FFmpeg executable is not needed for the common formats decoded by PyAV.
 
-Launchers create a separate `.venv` inside each project. If a supported Python cannot be found, they attempt to install Python 3.12 with Windows Package Manager (`winget`). Installing Python yourself first makes setup more predictable.
+1. [Download the ZIP](https://github.com/melodyyangds/whisper-subtitle-transcriber/archive/refs/heads/main.zip) and extract it fully. Git users can instead clone the repository:
 
-Once packages and the selected model are cached, transcription can run offline. Media is processed locally. PyAV handles decoding; a separate FFmpeg executable is not required for the supported formats. See the [engine documentation](https://github.com/SYSTRAN/faster-whisper#requirements) for details.
+   ```powershell
+   git clone https://github.com/melodyyangds/whisper-subtitle-transcriber.git
+   cd whisper-subtitle-transcriber
+   ```
 
-## Quick start on Windows
+2. Open the edition's folder in File Explorer.
+3. Drag a short recording onto its standard BAT launcher. The bilingual BAT also supports a file picker when double-clicked.
+4. On the first run, wait for environment setup and the model download. Keep the window open until it reports completion.
+5. Look beside the original recording for `_transcript.txt` and `_subtitles.srt` files.
 
-Download and extract this repository, or clone it with Git:
+Each edition creates its own `.venv` environment. The launchers attempt a Python 3.12 installation through `winget` if a supported Python cannot be found; installing Python yourself first is more predictable. You do not need to activate a virtual environment for the BAT workflow.
 
-```powershell
-git clone https://github.com/melodyyangds/whisper-subtitle-transcriber.git
-cd whisper-subtitle-transcriber
-```
+See the [full Windows guide](docs/USAGE.md) for manual setup, command-line options, subtitle playback, and offline use.
 
-The repository is initially private, so cloning requires an authorized GitHub account.
+## Example output
 
-### English recordings
-
-1. Open `English_Video_Transcriber_Windows` in File Explorer.
-2. Drag one English audio or video file onto `Transcribe_Video.bat`.
-3. On the first run, wait for setup and the `small.en` model download.
-4. Keep the window open until transcription finishes, then press a key to close it.
-
-The English BAT expects a file dropped onto it. Opening it without a file displays instructions.
-
-### Mandarin and English recordings
-
-1. Open `Bilingual_Subtitles_Windows_v3`.
-2. Double-click `Transcribe_Audio_Video.bat` to choose a file, or drag a file onto it.
-3. Use `Transcribe_Higher_Accuracy.bat` for the larger, slower `medium` model.
-
-`First_Time_Setup_Optional.bat` installs and verifies the bilingual environment without starting a transcription. The original [Traditional Chinese guide](Bilingual_Subtitles_Windows_v3/README_使用說明_繁體中文.txt) is also preserved. Its historical validation notes describe the original release; current checks are recorded in [VALIDATION.md](VALIDATION.md).
-
-## Output files
-
-For an input such as `meeting.mp4`, both tools write these files beside the original media:
+For a recording named `interview.mp4`:
 
 ```text
-meeting_transcript.txt
-meeting_subtitles.srt
+interview.mp4                 Original recording, unchanged
+interview_transcript.txt      Recognized speech
+interview_subtitles.srt       Numbered, timed subtitle cues
 ```
 
-The TXT contains recognized speech. The SRT contains numbered cues with timestamps such as `00:00:01,250 --> 00:00:03,000`. Files are UTF-8; bilingual output includes a UTF-8 byte order mark for Windows compatibility.
+An illustrative SRT cue looks like this; it is a format example, not a measured recognition result:
 
-The tools do not modify the original recording. Running again on the same input overwrites the corresponding generated TXT and SRT files. Copy those outputs elsewhere first if you want to keep an earlier result. Speech recognition can make mistakes; review names, punctuation, language switches, and timing before publishing subtitles.
-
-Common formats include MP4, M4A, MP3, WAV, MOV, MKV, FLAC, OGG, WEBM, AAC, and WMA. Actual decoding depends on the file's codec and contents. The launchers process one file per invocation.
-
-## Command-line usage
-
-Run commands from the repository root. Replace the example media path with your own file; quote paths containing spaces.
-
-```powershell
-# English: automatic setup, then transcription
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\English_Video_Transcriber_Windows\transcribe.ps1 -MediaPath "D:\Media\English interview.mp4"
-
-# Bilingual: automatic setup, then transcription
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Bilingual_Subtitles_Windows_v3\transcribe.ps1 -MediaPath "D:\Media\Meeting.m4a" -Model small
+```srt
+1
+00:00:00,000 --> 00:00:02,500
+Welcome to the interview.
 ```
 
-To install manually and choose an English model:
+Both files use UTF-8; bilingual output also includes a byte order mark for Windows compatibility. Re-running the same input overwrites its generated TXT and SRT files. Copy earlier outputs elsewhere if you want to retain them.
 
-```powershell
-cd English_Video_Transcriber_Windows
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe transcribe.py "D:\Media\English interview.mp4" --model small.en
+## Validation
+
+The English edition completed real CPU transcription of an 11-second public English speech sample through **Python, Windows PowerShell, and BAT**. All three runs produced non-empty TXT and SRT outputs with matching text, valid timestamps, and expected speech.
+
+The project also has **13 automated regression tests** covering timestamp boundaries, file writing, empty and blank segments, input validation, CPU settings, mixed-language preservation, console encoding, launcher failure handling, and Git ignore rules.
+
+The bilingual implementation was already tested successfully by the owner on Windows. Its eight original files were preserved byte for byte during publication; dependency verification and regression checks passed. A new live Mandarin–English accuracy test was not performed for publication.
+
+Read the [validation record](VALIDATION.md) for exact test scope, environment versions, sample provenance, and limitations. These results are not an accuracy benchmark across languages or a performance guarantee for long recordings.
+
+## How it works
+
+```text
+BAT launcher → PowerShell setup → Python transcription
+                                  ├─ PyAV: decode local media
+                                  ├─ faster-whisper: CPU speech recognition
+                                  ├─ OpenCC: Traditional Chinese conversion (bilingual)
+                                  └─ TXT and SRT: write beside the input
 ```
 
-Use `tiny.en` or `base.en` for a faster, less accurate English run. The English BAT and PowerShell launcher use `small.en`; use Python to select another model.
+The implementation emphasizes a practical Windows workflow: isolated dependencies, explicit CPU settings, readable scripts, incremental output, and tests for platform-specific failures. See the [technical overview](docs/ARCHITECTURE.md) for design decisions, repository structure, and development commands.
 
-Bilingual manual setup and advanced options:
+## Privacy and limitations
 
-```powershell
-cd Bilingual_Subtitles_Windows_v3
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe verify_install.py
-.\.venv\Scripts\python.exe transcribe.py "D:\Media\Meeting.m4a" --model small --language zh --chinese traditional
-```
+Transcription runs on your machine. The scripts do not send recordings to a transcription API. Initial setup contacts package and model hosts; after the necessary packages and model files are cached, inference can run offline.
 
-The bilingual Python CLI accepts `--language zh`, `en`, or `auto`; `--chinese traditional` or `simplified`; and an optional `--prompt` for contextual vocabulary. The `simplified` option keeps Whisper's original character output without conversion, so it does not guarantee exclusively Simplified Chinese. Its model choices are `tiny`, `base`, `small`, `medium`, and `large-v3`.
+No recordings, generated transcripts, downloaded models, virtual environments, or credentials are included in this repository. Git ignore rules help keep those files out of future commits.
 
-## Tests and validation
+The launchers process one file at a time. Codec support depends on the recording's contents, and voice activity detection may miss very quiet speech. Larger models require more memory and time on a CPU. Automatic captions need human review, especially for names and language switches.
 
-Run the regression suite with any supported Python:
+## Help and feedback
 
-```powershell
-python -m unittest discover -s tests -v
-```
+Start with [troubleshooting](TROUBLESHOOTING.md). If you find a reproducible problem, [open an issue](https://github.com/melodyyangds/whisper-subtitle-transcriber/issues) with your Windows and Python versions, chosen edition and model, and the error message. Remove personal paths and private transcript text before sharing logs; do not attach sensitive recordings.
 
-These tests exercise timestamp boundaries, output writing, blank segments, input validation, CPU settings, mixed language preservation, Windows console encoding, and native launcher failure handling. Unit tests replace model inference with a controlled test double; they do not measure recognition accuracy. Windows launcher tests run only on Windows. One dependency-check test requires the English `.venv`; install its requirements first to run all checks.
+## Acknowledgments
 
-Run a separate live test with a short English recording you are comfortable using:
-
-```powershell
-.\English_Video_Transcriber_Windows\.venv\Scripts\python.exe tests\live_smoke.py "D:\Media\Short English sample.wav" --expect "a phrase spoken in the sample"
-```
-
-This performs real inference with `small.en` through Python, PowerShell, and BAT on Windows, checks both output files and SRT timing, and saves local evidence in ignored `.validation/`. It makes new test copies and leaves the supplied recording unchanged. The script uses the English virtual environment's Python so the direct and launcher runs share the same dependencies.
-
-See [VALIDATION.md](VALIDATION.md) for the publication test results and [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for setup and decoding help.
-
-## Repository contents and privacy
-
-Both project folders retain their own source, launchers, and requirements. The bilingual implementation is preserved from the working local version. The English version includes small fixes for contiguous subtitle numbering, BAT failure reporting, and Unicode path logging.
-
-`.gitignore` excludes media, generated transcripts and subtitles, virtual environments, model files, caches, credentials, and local validation artifacts. The original Chinese guide and dependency manifests are the only TXT files intentionally included. No recordings, generated transcripts, model weights, or API credentials are distributed with this repository. Ignore rules do not remove files already tracked by Git; review staged changes before every future upload.
+Speech recognition is provided by [Whisper](https://github.com/openai/whisper), [faster-whisper](https://github.com/SYSTRAN/faster-whisper), and [CTranslate2](https://github.com/OpenNMT/CTranslate2). Media decoding uses [PyAV](https://github.com/PyAV-Org/PyAV); Chinese character conversion uses [OpenCC](https://github.com/yichen0831/opencc-python).
